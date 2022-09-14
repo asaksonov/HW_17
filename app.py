@@ -7,8 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from marshmallow import Schema, fields
 
 from config import app, db
-from models import Movie
-from schemas import MovieSchema
+from models import Movie, Director, Genre
+from schemas import MovieSchema, DirectorSchema, GenreSchema
 
 api = Api(app)
 
@@ -80,6 +80,36 @@ class MoviesViews(Resource):
         except Exception:
             db.session.rollback()
             return 'Не удалили', 500
+
+@director_ns.route("/")
+class DirectorsView(Resource):
+    def get(self):
+        query = Director.query
+        return DirectorSchema(many=True).dump(query.all()), 200
+
+@director_ns.route("/<int:id>/")
+class DirectorsView(Resource):
+    def get(self, id):
+        result = db.session.query(Director).filter(Director.id == id).all()
+        if len(result):
+            return DirectorSchema().dump(result[0]), 200
+        else:
+            return json.dumps({}),200
+
+@genre_ns.route("/")
+class GenresViews(Resource):
+    def get(self):
+        query = Genre.query
+        return GenreSchema(many=True).dump(query.all()), 200
+
+@genre_ns.route("/<int:id>/")
+class GenresView(Resource):
+    def get(self, id):
+        result = db.session.query(Genre).filter(Genre.id == id).all()
+        if len(result):
+            return GenreSchema().dump(result[0]), 200
+        else:
+            return json.dumps({}),200
 
 if __name__ == '__main__':
     app.run(port=8081, debug=True)
